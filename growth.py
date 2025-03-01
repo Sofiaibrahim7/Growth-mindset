@@ -4,7 +4,6 @@ import os
 from io import BytesIO
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import numpy as np
-import time
 import plotly.express as px
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -107,6 +106,7 @@ if uploaded_files:
     if st.button("💾 Convert & Download"):
         buffer = BytesIO()
         file_name = "processed_data"
+        
         if conversion_type == "CSV":
             merged_df.to_csv(buffer, index=False)
             file_name += ".csv"
@@ -121,11 +121,11 @@ if uploaded_files:
             file_name += ".json"
             mime_type = "application/json"
         elif conversion_type == "Parquet":
-            parquet_data = pa.Table.from_pandas(merged_df)
-            pq.write_table(parquet_data, "/mnt/data/data.parquet")
-            st.download_button(
-                "⬇️ Download as Parquet", open("/mnt/data/data.parquet", "rb"), "data.parquet", "application/octet-stream"
-            )
+            parquet_path = "data.parquet"
+            pq.write_table(pa.Table.from_pandas(merged_df), parquet_path)
+            with open(parquet_path, "rb") as f:
+                st.download_button("⬇️ Download as Parquet", f, "data.parquet", "application/octet-stream")
+            
         buffer.seek(0)
         st.download_button("⬇️ Download File", buffer, file_name, mime=mime_type)
     
